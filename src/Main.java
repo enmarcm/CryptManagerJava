@@ -12,7 +12,7 @@
 //                System.out.println("Public Key: \n" + kp.getPublic());
 //                System.out.println("Private Key: \n" + kp.getPrivate());
 
-                String pathFile = "C:/Users/theen/Desktop/archivo.txt";
+                String pathFile = "C:/Users/theen/Desktop/escritorio.xlsx";
                 String pathOut = "C:/Users/theen/Desktop/archivoEncriptado";
 
                 String publicKey = "-----BEGIN PUBLIC KEY-----\n" +
@@ -84,8 +84,8 @@
                         "-----END PRIVATE KEY-----";
 
                 CryptManager cm = new CryptManager();
-                cm.encryptFile(pathFile, publicKey, pathOut);
-//                cm.decryptFile(pathOut, privateKey, "C:/Users/theen/Desktop/archivoDesencriptado.txt");
+//                cm.encryptFile(pathFile, publicKey, pathOut);
+                cm.decryptFile(pathOut, privateKey, "C:/Users/theen/Desktop/archivoDesencriptado.xlsx");
                 System.out.println("EXITO");
 
             }catch (Exception e){

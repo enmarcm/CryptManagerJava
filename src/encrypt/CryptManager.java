@@ -3,6 +3,10 @@ package encrypt;
 import enums.GENERATION_TYPES;
 
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -56,27 +60,39 @@ public class CryptManager {
         KeyFactory kf = KeyFactory.getInstance(RSA);
         return kf.generatePrivate(new PKCS8EncodedKeySpec(encoded));
     }
-    public void encryptFile(String filePath, String publicKeyString, String outputPath) throws Exception {
+    public void encryptFile(String inputFile, String publicKeyString, String outputFile) throws Exception {
         PublicKey publicKey = getPublicKeyFromString(publicKeyString);
 
-        Cipher encryptCipher = Cipher.getInstance(RSA);
-        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-        byte[] inputBytes = Files.readAllBytes(Paths.get(filePath));
-        byte[] cipherText = encryptCipher.doFinal(inputBytes);
+        try (FileInputStream fis = new FileInputStream(inputFile);
+             FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-        Files.write(Paths.get(outputPath), cipherText, StandardOpenOption.CREATE);
+            byte[] buffer = new byte[501]; // Tamaño máximo para RSA con clave de 1024 bits
+            int read;
+            while ((read = fis.read(buffer)) != -1) {
+                byte[] encryptedBlock = cipher.doFinal(buffer, 0, read);
+                fos.write(encryptedBlock);
+            }
+        }
     }
 
-    public void decryptFile(String filePath, String privateKeyString, String outputPath) throws Exception {
+    public void decryptFile(String inputFile, String privateKeyString, String outputFile) throws Exception {
         PrivateKey privateKey = getPrivateKeyFromString(privateKeyString);
 
-        Cipher decryptCipher = Cipher.getInstance(RSA);
-        decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-        byte[] encryptedBytes = Files.readAllBytes(Paths.get(filePath));
-        byte[] decryptedBytes = decryptCipher.doFinal(encryptedBytes);
+        try (FileInputStream fis = new FileInputStream(inputFile);
+             FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-        Files.write(Paths.get(outputPath), decryptedBytes, StandardOpenOption.CREATE);
+            byte[] buffer = new byte[512]; // Tamaño de bloque cifrado para RSA con clave de 1024 bits
+            int read;
+            while ((read = fis.read(buffer)) != -1) {
+                byte[] decryptedBlock = cipher.doFinal(buffer, 0, read);
+                fos.write(decryptedBlock);
+            }
+        }
     }
 }
