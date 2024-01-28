@@ -30,10 +30,10 @@ public class CryptManager {
 
         for (int i = 0; i < resultString.length(); i += 64) {
             formattedString.append(resultString, i, Math.min(i + 64, resultString.length()));
-            formattedString.append("\n");
+            formattedString.append("\\n");
         }
 
-        String beginString = "-----BEGIN " + type.getType() + "-----\n";
+        String beginString = "-----BEGIN " + type.getType() + "-----\\n";
         String endString = "-----END " + type.getType() + "-----";
 
         return beginString + formattedString + endString;
@@ -41,8 +41,9 @@ public class CryptManager {
 
     private PublicKey getPublicKeyFromString(String key) throws Exception {
         String publicKeyPEM = key
-                .replace("-----BEGIN PUBLIC KEY-----\n", "")
-                .replace("\n-----END PUBLIC KEY-----", "");
+                .replace("-----BEGIN PUBLIC KEY-----\\n", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replace("\\n", "");
 
         byte[] encoded = Base64.getMimeDecoder().decode(publicKeyPEM);
 
@@ -52,10 +53,12 @@ public class CryptManager {
 
     private PrivateKey getPrivateKeyFromString(String key) throws Exception {
         String privateKeyPEM = key
-                .replace("-----BEGIN PRIVATE KEY-----\n", "")
-                .replace("\n-----END PRIVATE KEY-----", "");
+                .replace("-----BEGIN PRIVATE KEY-----\\n", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replace("\\n", "");
 
         byte[] encoded = Base64.getMimeDecoder().decode(privateKeyPEM);
+//        byte[] encoded = Base64.getMimeDecoder().decode(key);
 
         KeyFactory kf = KeyFactory.getInstance(RSA);
         return kf.generatePrivate(new PKCS8EncodedKeySpec(encoded));
@@ -69,7 +72,7 @@ public class CryptManager {
         try (FileInputStream fis = new FileInputStream(inputFile);
              FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-            byte[] buffer = new byte[501]; // Tamaño máximo para RSA con clave de 1024 bits
+            byte[] buffer = new byte[117]; // Tamaño máximo para RSA con clave de 1024 bits
             int read;
             while ((read = fis.read(buffer)) != -1) {
                 byte[] encryptedBlock = cipher.doFinal(buffer, 0, read);
@@ -87,7 +90,7 @@ public class CryptManager {
         try (FileInputStream fis = new FileInputStream(inputFile);
              FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-            byte[] buffer = new byte[512]; // Tamaño de bloque cifrado para RSA con clave de 1024 bits
+            byte[] buffer = new byte[128]; // Tamaño de bloque cifrado para RSA con clave de 1024 bits
             int read;
             while ((read = fis.read(buffer)) != -1) {
                 byte[] decryptedBlock = cipher.doFinal(buffer, 0, read);
