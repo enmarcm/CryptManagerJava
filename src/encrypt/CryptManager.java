@@ -1,23 +1,12 @@
 package encrypt;
 
 import enums.GENERATION_TYPES;
-
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 
 public class CryptManager {
@@ -39,40 +28,33 @@ public class CryptManager {
         return beginString + formattedString + endString;
     }
 
-    private PublicKey getPublicKeyFromString(String key) throws Exception {
-        String publicKeyPEM = key
-                .replace("-----BEGIN PUBLIC KEY-----\\n", "")
-                .replace("-----END PUBLIC KEY-----", "")
+    @SuppressWarnings("unchecked")
+    private <T extends Key> T getKeyFromString(GENERATION_TYPES type, String key) throws Exception {
+        String formattedKey = key
+                .replace("-----BEGIN " + type.getType() + "-----\\n", "")
+                .replace("-----END " + type.getType() + "-----", "")
+                .replace("\n", "")
                 .replace("\\n", "");
 
-        byte[] encoded = Base64.getMimeDecoder().decode(publicKeyPEM);
-
+        byte[] encoded = Base64.getMimeDecoder().decode(formattedKey);
         KeyFactory kf = KeyFactory.getInstance(RSA);
-        return kf.generatePublic(new X509EncodedKeySpec(encoded));
+
+
+        if (type == GENERATION_TYPES.PUBLIC_KEY) return (T) kf.generatePublic(new X509EncodedKeySpec(encoded));
+        else if (type == GENERATION_TYPES.PRIVATE_KEY) return (T) kf.generatePrivate(new PKCS8EncodedKeySpec(encoded));
+        else return null;
     }
 
-    private PrivateKey getPrivateKeyFromString(String key) throws Exception {
-        String privateKeyPEM = key
-                .replace("-----BEGIN PRIVATE KEY-----\\n", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replace("\\n", "");
-
-        byte[] encoded = Base64.getMimeDecoder().decode(privateKeyPEM);
-//        byte[] encoded = Base64.getMimeDecoder().decode(key);
-
-        KeyFactory kf = KeyFactory.getInstance(RSA);
-        return kf.generatePrivate(new PKCS8EncodedKeySpec(encoded));
-    }
     public void encryptFile(String inputFile, String publicKeyString, String outputFile) throws Exception {
-        PublicKey publicKey = getPublicKeyFromString(publicKeyString);
+        PublicKey publicKey = (PublicKey) getKeyFromString(GENERATION_TYPES.PUBLIC_KEY, publicKeyString);
 
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
         try (FileInputStream fis = new FileInputStream(inputFile);
              FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-            byte[] buffer = new byte[117]; // Tamaño máximo para RSA con clave de 1024 bits
+            byte[] buffer = new byte[501];
             int read;
             while ((read = fis.read(buffer)) != -1) {
                 byte[] encryptedBlock = cipher.doFinal(buffer, 0, read);
@@ -82,15 +64,15 @@ public class CryptManager {
     }
 
     public void decryptFile(String inputFile, String privateKeyString, String outputFile) throws Exception {
-        PrivateKey privateKey = getPrivateKeyFromString(privateKeyString);
+        PrivateKey privateKey = getKeyFromString(GENERATION_TYPES.PRIVATE_KEY, privateKeyString);
 
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
         try (FileInputStream fis = new FileInputStream(inputFile);
              FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-            byte[] buffer = new byte[128]; // Tamaño de bloque cifrado para RSA con clave de 1024 bits
+            byte[] buffer = new byte[512];
             int read;
             while ((read = fis.read(buffer)) != -1) {
                 byte[] decryptedBlock = cipher.doFinal(buffer, 0, read);

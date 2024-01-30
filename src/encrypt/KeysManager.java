@@ -13,7 +13,7 @@ public class KeysManager {
         Map<KEYS_TYPES, byte[]> map = new HashMap<>();
 
         KeyPairGenerator keyPairInitializer = KeyPairGenerator.getInstance("RSA");
-        keyPairInitializer.initialize(1024);
+        keyPairInitializer.initialize(4096);
         KeyPair keys = keyPairInitializer.generateKeyPair();
 
         byte[] privateKey = keys.getPrivate().getEncoded();
@@ -35,37 +35,4 @@ public class KeysManager {
         return new KeyPairs(publicKeyString, privateKeyString);
     }
 
-
-//    static {
-//        Security.addProvider(new BouncyCastleProvider());
-//    }
-
-//    private Map<KEYS_TYPES, byte[]> generateEncodedKeyPair() throws Exception {
-//        Map<KEYS_TYPES, byte[]> map = new HashMap<>();
-//
-//        KeyPairGenerator keyPairInitializer = KeyPairGenerator.getInstance("RSA", "BC");
-//        keyPairInitializer.initialize(4096);
-//        KeyPair keys = keyPairInitializer.generateKeyPair();
-//
-//        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(keys.getPublic().getEncoded());
-//        PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(keys.getPrivate().getEncoded());
-//
-//        byte[] publicKey = publicKeyInfo.getEncoded();
-//        byte[] privateKey = privateKeyInfo.getEncoded();
-//
-//        map.put(KEYS_TYPES.PUBLIC_KEY, publicKey);
-//        map.put(KEYS_TYPES.PRIVATE_KEY, privateKey);
-//
-//        return map;
-//    }
-//
-//    public KeyPairs generatePairKey() throws Exception {
-//        CryptManager cm = new CryptManager();
-//        Map<KEYS_TYPES, byte[]> encodedKeys = this.generateEncodedKeyPair();
-//
-//        String publicKeyString = cm.parseString(encodedKeys.get(KEYS_TYPES.PUBLIC_KEY), GENERATION_TYPES.PUBLIC_KEY);
-//        String privateKeyString = cm.parseString(encodedKeys.get(KEYS_TYPES.PRIVATE_KEY), GENERATION_TYPES.PRIVATE_KEY);
-//
-//        return new KeyPairs(publicKeyString, privateKeyString);
-//    }
 }
