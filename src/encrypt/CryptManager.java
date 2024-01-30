@@ -31,7 +31,7 @@ public class CryptManager {
     @SuppressWarnings("unchecked")
     private <T extends Key> T getKeyFromString(GENERATION_TYPES type, String key) throws Exception {
         String formattedKey = key
-                .replace("-----BEGIN " + type.getType() + "-----\\n", "")
+                .replace("-----BEGIN " + type.getType() + "-----", "")
                 .replace("-----END " + type.getType() + "-----", "")
                 .replace("\n", "")
                 .replace("\\n", "");
